@@ -21,7 +21,6 @@ def rq(name, memory_req):
         print(obj.name)
         if (obj.name == 'Unused') and (obj.mem_size == new.mem_size):
             new.min_size = obj.min_size
-            #new.max_size = obj.mem_size
             mem.remove(obj)
             mem.append(new)
         elif (obj.name == 'Unused') and (obj.mem_size > new.mem_size):
