@@ -17,12 +17,23 @@ class MemoryAlloc:
 
 def rq(name, memory_req):
     new = MemoryAlloc(name, memory_req)
-    if unused.max_size == unused.mem_size - 1:
-        new.min_size = unused.min_size
-        new.max_size = memory_req - 1
-        mem.append('Addresses [' + str(new.min_size) + ':' + str(new.max_size) + '] ' + new.name)
-        unused.min_size = new.max_size
-        mem[0] =
+    for obj in mem:
+        print(obj.name)
+        if (obj.name == 'Unused') and (obj.mem_size == new.mem_size):
+            new.min_size = obj.min_size
+            #new.max_size = obj.mem_size
+            mem.remove(obj)
+            mem.append(new)
+        elif (obj.name == 'Unused') and (obj.mem_size > new.mem_size):
+            orig = obj.mem_size - new.mem_size
+            new.min_size = obj.min_size
+            new.max_size = new.min_size + new.mem_size
+            mem.remove(obj)
+            mem.append(new)
+            new2 = MemoryAlloc('Unused', orig)
+            new2.min_size = new.max_size
+            new2.max_size = new2.min_size + orig
+            mem.append(new2)
 
 
 def rl(name):
@@ -35,7 +46,7 @@ def c():
 
 def stat():
     for process in mem:
-        print(process)
+        print('Addresses [' + str(process.min_size) + ':' + str(process.max_size) + '] ' + process.name)
 
 
 if __name__ == '__main__':
@@ -45,7 +56,7 @@ if __name__ == '__main__':
             raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
         else:
             unused = MemoryAlloc('Unused', args.size)
-            mem.append('Addresses [' + str(unused.min_size) + ':' + str(unused.max_size) + '] ' + unused.name)
+            mem.append(unused)
         if unused.mem_size <= 0:
             raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
     except ValueError as error:
