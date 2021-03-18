@@ -17,31 +17,29 @@ class MemoryAlloc:
 def rq(name, memory_req):
     for obj in mem:
         if obj.name == name:
+            # Making sure we cannot make multiple processes with the same name
             print("Process with name already exists!")
-            break
-        elif memory_req < 0:
-            print("Unable to allocate memory for " + name)
             break
         elif (obj.name == 'Unused') and (obj.mem_size == memory_req):
             index = mem.index(obj)
-            new = MemoryAlloc(name, memory_req)
-            new.base = obj.base
-            new.limit = obj.limit
+            new_process = MemoryAlloc(name, memory_req)
+            new_process.base = obj.base
+            new_process.limit = obj.limit
             mem.remove(obj)
-            mem.insert(index, new)
+            mem.insert(index, new_process)
             break
-        elif (obj.name == 'Unused') and (memory_req <= obj.mem_size):
+        elif (obj.name == 'Unused') and (memory_req < obj.mem_size):
             index = mem.index(obj)
-            new = MemoryAlloc(name, memory_req)
-            orig = obj.mem_size - memory_req
-            new.base = obj.base
-            new.limit = new.base + memory_req - 1
+            new_process = MemoryAlloc(name, memory_req)
+            unused_mem = obj.mem_size - memory_req
+            new_process.base = obj.base
+            new_process.limit = new_process.base + memory_req - 1
             mem.remove(obj)
-            mem.insert(index, new)
-            new2 = MemoryAlloc('Unused', orig)
-            new2.base = new.limit + 1
-            new2.limit = new2.base + orig - 1
-            mem.insert(index + 1, new2)
+            mem.insert(index, new_process)
+            new_unused = MemoryAlloc('Unused', unused_mem)
+            new_unused.base = new_process.limit + 1
+            new_unused.limit = new_process.base + unused_mem - 1
+            mem.insert(index + 1, new_unused)
             break
     else:
         print("Unable to allocate memory for " + name)
@@ -52,11 +50,11 @@ def rl(name):
     for obj in mem:
         index = mem.index(obj)
         if obj.name == name:
-            new = MemoryAlloc('Unused', obj.mem_size)
-            new.base = obj.base
-            new.limit = obj.limit
+            new_process = MemoryAlloc('Unused', obj.mem_size)
+            new_process.base = obj.base
+            new_process.limit = obj.limit
             mem.remove(obj)
-            mem.insert(index, new)
+            mem.insert(index, new_process)
             flag += 1
     if flag == 0:
         print("Unable to find " + name)
@@ -75,10 +73,10 @@ def c():
         for obj in items:
             size += obj.mem_size
             mem.remove(obj)
-        new = MemoryAlloc('Unused', size)
-        new.base = items[0].base
-        new.limit = new.base + size - 1
-        mem.insert(index, new)
+        new_process = MemoryAlloc('Unused', size)
+        new_process.base = items[0].base
+        new_process.limit = new_process.base + size - 1
+        mem.insert(index, new_process)
     for obj in mem:
         if mem.index(obj) > ind[0]:
             obj.base = mem[mem.index(obj) - 1].limit + 1
@@ -93,11 +91,12 @@ def stat():
 if __name__ == '__main__':
     # mem holds all of our objects of class MemoryAlloc
     mem = []
-    # Error handling making sure that argument is a valid size
+    # Error handling making sure that the size argument is a valid size
     try:
         if (args.size is None) or (args.size <= 0):
-            raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
+            raise ValueError('Error: Memory allocation cannot be 0 or null, please enter a positive size argument.')
         else:
+            # Once verified size is valid, we make the 'Unused' object and append it to the mem list
             unused = MemoryAlloc('Unused', args.size)
             mem.append(unused)
     except ValueError as error:
@@ -109,7 +108,7 @@ if __name__ == '__main__':
         command = [line for line in i.split(' ') if line.strip()]
 
         try:
-            if command[0].lower() == 'rq':
+            if (command[0].lower() == 'rq') and (int(command[2]) > 0):
                 rq(command[1], int(command[2]))
             elif command[0].lower() == 'rl':
                 rl(command[1])
