@@ -17,8 +17,8 @@ class MemoryAlloc:
 
 def rq(name, memory_req):
     new = MemoryAlloc(name, memory_req)
+    index = 0
     for obj in mem:
-        print(obj.name)
         if (obj.name == 'Unused') and (obj.mem_size == new.mem_size):
             new.min_size = obj.min_size
             mem.remove(obj)
@@ -26,17 +26,28 @@ def rq(name, memory_req):
         elif (obj.name == 'Unused') and (obj.mem_size > new.mem_size):
             orig = obj.mem_size - new.mem_size
             new.min_size = obj.min_size
-            new.max_size = new.min_size + new.mem_size
+            new.max_size = new.min_size + new.mem_size - 1
             mem.remove(obj)
             mem.append(new)
             new2 = MemoryAlloc('Unused', orig)
-            new2.min_size = new.max_size
-            new2.max_size = new2.min_size + orig
+            new2.min_size = new.max_size + 1
+            new2.max_size = new2.min_size + orig - 1
             mem.append(new2)
+            break
 
 
 def rl(name):
-    print(name)
+    index = 0
+    for obj in mem:
+        if obj.name == name:
+            new = MemoryAlloc('Unused', obj.mem_size)
+            new.min_size = obj.min_size
+            new.max_size = obj.max_size
+            mem.remove(obj)
+            mem.insert(index, new)
+        index += 1
+    else:
+        print("Unable to find " + name)
 
 
 def c():
