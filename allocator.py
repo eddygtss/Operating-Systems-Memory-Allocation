@@ -16,15 +16,20 @@ class MemoryAlloc:
 
 
 def rq(name, memory_req):
-    index = 0
     for obj in mem:
         if obj.name == name:
             print("Process with name already exists!")
             break
+        elif memory_req < 0:
+            print("Unable to allocate memory for " + name)
+            break
         elif (obj.name == 'Unused') and (obj.mem_size == memory_req):
             new = MemoryAlloc(name, memory_req)
+            new.min_size = obj.min_size
+            new.max_size = obj.max_size
             mem.remove(obj)
             mem.append(new)
+            break
         elif (obj.name == 'Unused') and (memory_req <= obj.mem_size):
             new = MemoryAlloc(name, memory_req)
             orig = obj.mem_size - new.mem_size
@@ -38,7 +43,7 @@ def rq(name, memory_req):
             mem.append(new2)
             break
     else:
-        print("Unable to allocate space for " + name)
+        print("Unable to allocate memory for " + name)
 
 
 def rl(name):
