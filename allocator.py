@@ -48,9 +48,9 @@ def rq(name, memory_req):
 
 
 def rl(name):
-    index = 0
     flag = 0
     for obj in mem:
+        index = mem.index(obj)
         if obj.name == name:
             new = MemoryAlloc('Unused', obj.mem_size)
             new.base = obj.base
@@ -58,7 +58,6 @@ def rl(name):
             mem.remove(obj)
             mem.insert(index, new)
             flag += 1
-        index += 1
     if flag == 0:
         print("Unable to find " + name)
 
@@ -92,7 +91,9 @@ def stat():
 
 
 if __name__ == '__main__':
+    # mem holds all of our objects of class MemoryAlloc
     mem = []
+    # Error handling making sure that argument is a valid size
     try:
         if (args.size is None) or (args.size <= 0):
             raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
