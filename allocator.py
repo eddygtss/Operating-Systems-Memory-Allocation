@@ -3,7 +3,6 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--size', type=int, help='integer that defines size of memory to allocate.')
 args = parser.parse_args()
-global unused
 global mem
 
 
@@ -11,8 +10,8 @@ class MemoryAlloc:
     def __init__(self, name, mem_size):
         self.name = name
         self.mem_size = mem_size
-        self.min_size = 0
-        self.max_size = mem_size - 1
+        self.base = 0
+        self.limit = mem_size - 1
 
 
 def rq(name, memory_req):
@@ -24,23 +23,25 @@ def rq(name, memory_req):
             print("Unable to allocate memory for " + name)
             break
         elif (obj.name == 'Unused') and (obj.mem_size == memory_req):
+            index = mem.index(obj)
             new = MemoryAlloc(name, memory_req)
-            new.min_size = obj.min_size
-            new.max_size = obj.max_size
+            new.base = obj.base
+            new.limit = obj.limit
             mem.remove(obj)
-            mem.append(new)
+            mem.insert(index, new)
             break
         elif (obj.name == 'Unused') and (memory_req <= obj.mem_size):
+            index = mem.index(obj)
             new = MemoryAlloc(name, memory_req)
-            orig = obj.mem_size - new.mem_size
-            new.min_size = obj.min_size
-            new.max_size = new.min_size + new.mem_size - 1
+            orig = obj.mem_size - memory_req
+            new.base = obj.base
+            new.limit = new.base + memory_req - 1
             mem.remove(obj)
-            mem.append(new)
+            mem.insert(index, new)
             new2 = MemoryAlloc('Unused', orig)
-            new2.min_size = new.max_size + 1
-            new2.max_size = new2.min_size + orig - 1
-            mem.append(new2)
+            new2.base = new.limit + 1
+            new2.limit = new2.base + orig - 1
+            mem.insert(index + 1, new2)
             break
     else:
         print("Unable to allocate memory for " + name)
@@ -52,8 +53,8 @@ def rl(name):
     for obj in mem:
         if obj.name == name:
             new = MemoryAlloc('Unused', obj.mem_size)
-            new.min_size = obj.min_size
-            new.max_size = obj.max_size
+            new.base = obj.base
+            new.limit = obj.limit
             mem.remove(obj)
             mem.insert(index, new)
             flag += 1
@@ -76,30 +77,28 @@ def c():
             size += obj.mem_size
             mem.remove(obj)
         new = MemoryAlloc('Unused', size)
-        new.min_size = items[0].min_size
-        new.max_size = new.min_size + size - 1
+        new.base = items[0].base
+        new.limit = new.base + size - 1
         mem.insert(index, new)
     for obj in mem:
         if mem.index(obj) > ind[0]:
-            obj.min_size = mem[mem.index(obj) - 1].max_size + 1
-            obj.max_size = obj.min_size + obj.mem_size - 1
+            obj.base = mem[mem.index(obj) - 1].limit + 1
+            obj.limit = obj.base + obj.mem_size - 1
 
 
 def stat():
     for process in mem:
-        print('Addresses [' + str(process.min_size) + ':' + str(process.max_size) + '] ' + process.name)
+        print('Addresses [' + str(process.base) + ':' + str(process.limit) + '] ' + process.name)
 
 
 if __name__ == '__main__':
     mem = []
     try:
-        if args.size is None:
+        if (args.size is None) or (args.size <= 0):
             raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
         else:
             unused = MemoryAlloc('Unused', args.size)
             mem.append(unused)
-        if unused.mem_size <= 0:
-            raise ValueError('Error memory allocation cannot be 0 or null, please enter a positive size argument.')
     except ValueError as error:
         print(error)
         quit()
