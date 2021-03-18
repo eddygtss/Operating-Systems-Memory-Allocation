@@ -16,14 +16,17 @@ class MemoryAlloc:
 
 
 def rq(name, memory_req):
-    new = MemoryAlloc(name, memory_req)
     index = 0
     for obj in mem:
-        if (obj.name == 'Unused') and (obj.mem_size == new.mem_size):
-            new.min_size = obj.min_size
+        if obj.name == name:
+            print("Process with name already exists!")
+            break
+        elif (obj.name == 'Unused') and (obj.mem_size == memory_req):
+            new = MemoryAlloc(name, memory_req)
             mem.remove(obj)
             mem.append(new)
-        elif (obj.name == 'Unused') and (obj.mem_size > new.mem_size):
+        elif (obj.name == 'Unused') and (memory_req <= obj.mem_size):
+            new = MemoryAlloc(name, memory_req)
             orig = obj.mem_size - new.mem_size
             new.min_size = obj.min_size
             new.max_size = new.min_size + new.mem_size - 1
@@ -34,10 +37,13 @@ def rq(name, memory_req):
             new2.max_size = new2.min_size + orig - 1
             mem.append(new2)
             break
+    else:
+        print("Unable to allocate space for " + name)
 
 
 def rl(name):
     index = 0
+    flag = 0
     for obj in mem:
         if obj.name == name:
             new = MemoryAlloc('Unused', obj.mem_size)
@@ -45,13 +51,33 @@ def rl(name):
             new.max_size = obj.max_size
             mem.remove(obj)
             mem.insert(index, new)
+            flag += 1
         index += 1
-    else:
+    if flag == 0:
         print("Unable to find " + name)
 
 
 def c():
-    print('C')
+    items = []
+    ind = []
+    for obj in mem:
+        if obj.name == 'Unused':
+            items.append(obj)
+    if len(items) > 1:
+        size = 0
+        index = mem.index(items[0])
+        ind.append(index)
+        for obj in items:
+            size += obj.mem_size
+            mem.remove(obj)
+        new = MemoryAlloc('Unused', size)
+        new.min_size = items[0].min_size
+        new.max_size = new.min_size + size - 1
+        mem.insert(index, new)
+    for obj in mem:
+        if mem.index(obj) > ind[0]:
+            obj.min_size = mem[mem.index(obj) - 1].max_size + 1
+            obj.max_size = obj.min_size + obj.mem_size - 1
 
 
 def stat():
@@ -91,5 +117,5 @@ if __name__ == '__main__':
                 quit()
             else:
                 print('Please enter a valid command!')
-        except IndexError:
-            print('Please enter arguments after command!')
+        except IndexError as x:
+            print(x)
