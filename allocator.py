@@ -21,6 +21,7 @@ def rq(name, memory_req):
             print("Process with name already exists!")
             break
         elif (obj.name == 'Unused') and (obj.mem_size == memory_req):
+            # If conditions are met we want to only remove and insert the new process where the object was
             index = mem.index(obj)
             new_process = MemoryAlloc(name, memory_req)
             new_process.base = obj.base
@@ -29,58 +30,66 @@ def rq(name, memory_req):
             mem.insert(index, new_process)
             break
         elif (obj.name == 'Unused') and (memory_req < obj.mem_size):
+            # If conditions are met we will have a new hole or "Unused" space
             index = mem.index(obj)
             new_process = MemoryAlloc(name, memory_req)
-            unused_mem = obj.mem_size - memory_req
+            # Creating a new hole by subtracting original hole size by requested size
+            new_unused_mem = obj.mem_size - memory_req
             new_process.base = obj.base
             new_process.limit = new_process.base + memory_req - 1
-            mem.remove(obj)
-            mem.insert(index, new_process)
-            new_unused = MemoryAlloc('Unused', unused_mem)
+            mem.remove(obj)  # Removing the original 'Unused' space
+            mem.insert(index, new_process)  # Inserting the new process in place of the original 'Unused' space
+            new_unused = MemoryAlloc('Unused', new_unused_mem)  # Create the new 'Unused' hole
             new_unused.base = new_process.limit + 1
-            new_unused.limit = new_process.base + unused_mem - 1
-            mem.insert(index + 1, new_unused)
+            new_unused.limit = new_process.base + new_unused_mem - 1
+            mem.insert(index + 1, new_unused)  # Inserting the new hole at the original index + 1
             break
     else:
         print("Unable to allocate memory for " + name)
 
 
 def rl(name):
-    flag = 0
+    # Using a flag to display an error message
+    flag = False
     for obj in mem:
         index = mem.index(obj)
+        # If we find the object stated, replace with new 'Unused' at the index where it was removed.
         if obj.name == name:
-            new_process = MemoryAlloc('Unused', obj.mem_size)
-            new_process.base = obj.base
-            new_process.limit = obj.limit
+            new_unused = MemoryAlloc('Unused', obj.mem_size)
+            new_unused.base = obj.base
+            new_unused.limit = obj.limit
             mem.remove(obj)
-            mem.insert(index, new_process)
-            flag += 1
-    if flag == 0:
-        print("Unable to find " + name)
+            mem.insert(index, new_unused)
+            flag = True
+    if flag is False:
+        print("Unable to find process: " + name)
 
 
 def c():
     items = []
-    ind = []
+    index = 0
+    # Storing all of the current 'Unused' holes to items list
     for obj in mem:
         if obj.name == 'Unused':
             items.append(obj)
     if len(items) > 1:
         size = 0
+        # We want to store the index location for the first 'Unused' hole so we can expand it
         index = mem.index(items[0])
-        ind.append(index)
         for obj in items:
+            # For every 'Unused' item we are adding the size of that object to the size variable and removing the item
             size += obj.mem_size
             mem.remove(obj)
-        new_process = MemoryAlloc('Unused', size)
-        new_process.base = items[0].base
-        new_process.limit = new_process.base + size - 1
-        mem.insert(index, new_process)
+        new_unused = MemoryAlloc('Unused', size)
+        # New 'Unused' hole will start at the base of the first 'Unused' item
+        new_unused.base = items[0].base
+        new_unused.limit = new_unused.base + size - 1
+        mem.insert(index, new_unused)
     for obj in mem:
-        if mem.index(obj) > ind[0]:
-            obj.base = mem[mem.index(obj) - 1].limit + 1
-            obj.limit = obj.base + obj.mem_size - 1
+        # Here we update the base and limit of the objects following the new 'Unused' hole
+        if mem.index(obj) > index:
+            obj.base = mem[mem.index(obj) - 1].limit + 1  # We use the limit of the previous object and add 1
+            obj.limit = obj.base + obj.mem_size - 1  # We use the base of the current object and add the size - 1
 
 
 def stat():
