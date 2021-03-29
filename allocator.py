@@ -41,7 +41,7 @@ def rq(name, memory_req):
             mem.insert(index, new_process)  # Inserting the new process in place of the original 'Unused' space
             new_unused = MemoryAlloc('Unused', new_unused_mem)  # Create the new 'Unused' hole
             new_unused.base = new_process.limit + 1
-            new_unused.limit = new_process.base + new_unused_mem - 1
+            new_unused.limit = new_unused.base + new_unused_mem - 1
             mem.insert(index + 1, new_unused)  # Inserting the new hole at the original index + 1
             break
     else:
@@ -130,5 +130,5 @@ if __name__ == '__main__':
                 quit()
             else:
                 print('Please enter a valid command!')
-        except IndexError as x:
-            print(x)
+        except IndexError:
+            print('Please enter a valid command!')
